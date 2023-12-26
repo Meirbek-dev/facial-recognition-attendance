@@ -1,0 +1,11 @@
+.git
+.vscode
+.idea
+.ipynb_checkpoints
+__pycache__
+Tensorflow/models
+Tensorflow/workspace/images
+Tensorflow/workspace/annotations/*.record
+Tensorflow/workspace/annotations/
+Tensorflow/workspace/models/my_ssd_mobnet/train
+Tensorflow/workspace/pre-trained-models/
