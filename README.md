@@ -6,7 +6,7 @@
 
 ### Используемые технологии
 
-- [**WSL 2 (Ubuntu 22.04)**]
+- **WSL 2 (Ubuntu 22.04)**
 - [**Conda** 4.12.0](https://www.anaconda.com/) с [**Python** 3.11.7](https://www.python.org/)
 - [**Tensorflow** 2.15.0](https://www.tensorflow.org/)
 - [**Keras** 2.15.0](https://keras.io/)
