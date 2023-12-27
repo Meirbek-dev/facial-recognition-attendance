@@ -103,11 +103,11 @@ docker pull tensorflow/tensorflow
 Запуск контейнера GPU, с интерпретатором Python.
 
 ``` bash
-docker run -it --rm --runtime=nvidia tensorflow/tensorflow:latest-gpu python
+docker run -it --rm --gpus all tensorflow/tensorflow:latest-gpu python
 ```
 
 Запуск сервера Jupyter Notebook.
 
 ``` bash
-docker run -it --rm -v $(realpath ~/notebooks):/tf/notebooks -p 8888:8888 tensorflow/tensorflow:latest-jupyter
+docker run -it --rm --gpus all -v $(realpath ~/notebooks):/tf/notebooks -p 8888:8888 tensorflow/tensorflow:latest-gpu-jupyter
 ```
