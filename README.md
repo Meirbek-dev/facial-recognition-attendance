@@ -18,6 +18,8 @@
 - [**CUDA** 12.2](https://developer.nvidia.com/cuda-11.2.2-download-archive)
 - [**cuDNN** 8.9.4](https://developer.nvidia.com/rdp/cudnn-archive)
 
+### [Gist с настройкой WSL](https://gist.github.com/Meirbek-dev/f556979f139ec4a3e346026a9e0246ef)
+
 ### [Инструкция по установке и настройке окружения для распознавания объектов при помощи Tensorflow](https://tensorflow-object-detection-api-tutorial.readthedocs.io/en/latest/install.html)
 
 ### [Список GPU, поддерживающих CUDA и оценка их вычислительных возможностей](https://developer.nvidia.com/cuda-gpus)
