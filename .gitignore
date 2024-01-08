@@ -3,6 +3,7 @@
 .vscode
 .idea
 
+.virtual_documents
 .ipynb_checkpoints
 */.ipynb_checkpoints
 
