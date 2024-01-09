@@ -13,5 +13,7 @@ data/anchor/*
 data/negative/*
 data/positive/*
 
-application_data/input_imag/*
+application_data/input_image/*
 application_data/verification_images/*
+
+*.keras
