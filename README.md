@@ -25,4 +25,4 @@
 ### Использованный набор данных
 
 - [**University of Massachusetts**. Labeled Faces in the Wild
-](https://vis-www.cs.umass.edu/lfw/) из *13233* изображений
+  ](https://vis-www.cs.umass.edu/lfw/) из *13233* изображений
