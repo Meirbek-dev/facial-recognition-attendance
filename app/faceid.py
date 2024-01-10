@@ -24,8 +24,23 @@ INPUT_IMG_PATH = os.path.join(INPUT_IMG_DIR_PATH, "input_image.jpg")
 Window.maximize()
 
 
+# Загрузка изображения из файла и конвертация в 105x105px
+def preprocess(file_path):
+    # Чтение изображения
+    byte_img = tf.io.read_file(file_path)
+    # Загрузка изображения
+    img = tf.io.decode_jpeg(byte_img)
+    # Изменение размера изображения на 105x105
+    img = tf.image.resize(img, (105, 105))
+    # Масштабирование изображения в диапазоне от 0 до 1
+    img /= 255.0
+    return img
+
+
 class CamApp(App):
     def build(self):
+        self.title = "Система распознавания лиц"
+
         # Главные компоненты
         self.web_cam = Image(size_hint=(1, 0.8))
         self.button = Button(text="Подтвердить", on_press=self.verify, size_hint=(1, 0.1))
@@ -57,24 +72,12 @@ class CamApp(App):
         img_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         self.web_cam.texture = img_texture
 
-    # Загрузка изображения из файла и конвертация в 105x105px
-    def preprocess(self, file_path):
-        # Чтение изображения
-        byte_img = tf.io.read_file(file_path)
-        # Загрузка изображения
-        img = tf.io.decode_jpeg(byte_img)
-        # Изменение размера изображения на 105x105
-        img = tf.image.resize(img, (105, 105))
-        # Масштабирование изображения в диапазоне от 0 до 1
-        img = img / 255.0
-        return img
-
     def verify(self, model, detection_threshold=0.8, verification_threshold=0.6):
         # Построение массива результатов прогнозов
         results = []
         for image in os.listdir(VERIF_IMG_DIR_PATH):
-            input_img = self.preprocess(INPUT_IMG_PATH)
-            validation_img = self.preprocess(os.path.join(VERIF_IMG_DIR_PATH, image))
+            input_img = preprocess(INPUT_IMG_PATH)
+            validation_img = preprocess(os.path.join(VERIF_IMG_DIR_PATH, image))
 
             # Результаты прогнозов
             result = self.model.predict(list(np.expand_dims([input_img, validation_img], axis=1)))
@@ -87,7 +90,7 @@ class CamApp(App):
         verification = detection / len(os.listdir(VERIF_IMG_DIR_PATH))
         verified = verification > verification_threshold
 
-        self.verification_label.text = ("Подтверждено" if verified == True else "Не подтверждено")
+        self.verification_label.text = ("Подтверждено" if verified else "Не подтверждено")
 
         # Logger.info(results)
         Logger.info(detection)
