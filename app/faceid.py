@@ -3,15 +3,15 @@ import os
 import cv2
 import numpy as np
 import tensorflow as tf
-from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.graphics.texture import Texture
 from kivy.logger import Logger
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
 from kivy.uix.image import Image
-from kivy.uix.label import Label
+from kivymd.app import MDApp
+from kivymd.uix.boxlayout import MDBoxLayout as BoxLayout
+from kivymd.uix.button import MDRaisedButton as Button
+from kivymd.uix.label import MDLabel as Label
 
 from layers import L1Dist
 
@@ -37,14 +37,16 @@ def preprocess(file_path):
     return img
 
 
-class CamApp(App):
+class FaceIDApp(MDApp):
     def build(self):
         self.title = "Система распознавания лиц"
+        self.theme_cls.theme_style = "Dark"
+        self.theme_cls.primary_palette = "Gray"
 
         # Главные компоненты
         self.web_cam = Image(size_hint=(1, 0.8))
         self.button = Button(text="Подтвердить", on_press=self.verify, size_hint=(1, 0.1))
-        self.verification_label = Label(text="Начните подтверждение", size_hint=(1, 0.1))
+        self.verification_label = Label(text="Начните подтверждение", size_hint=(1, 0.1), halign="center")
 
         # Размещение элементов на макете
         layout = BoxLayout(orientation="vertical")
@@ -67,7 +69,7 @@ class CamApp(App):
         frame = frame[115: 115 + 250, 195: 195 + 250, :]
 
         # Переворачивание по горизонтали и преобразовние изображения в текстуру
-        buf = cv2.flip(frame, 0).tostring()
+        buf = cv2.flip(frame, 0).tobytes()
         img_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt="bgr")
         img_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         self.web_cam.texture = img_texture
@@ -101,4 +103,4 @@ class CamApp(App):
 
 
 if __name__ == "__main__":
-    CamApp().run()
+    FaceIDApp().run()
