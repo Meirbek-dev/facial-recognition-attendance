@@ -1,0 +1,8 @@
+keras==2.13.1
+Kivy==2.2.1
+Kivy_examples==2.2.1
+kivymd==1.1.1
+numpy==1.24.3
+tensorflow==2.13.1
+tensorflow_intel==2.13.1
+opencv==4.8.1
