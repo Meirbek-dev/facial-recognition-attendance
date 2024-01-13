@@ -13,9 +13,11 @@ data/anchor/*
 data/negative/*
 data/positive/*
 
-application_data/input_image/*
-application_data/verification_images/*
+app_data/input_image/*
+app_data/verification_images/*
 
 training_checkpoints
 
 *.keras
+
+siam_net.ipynb

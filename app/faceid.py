@@ -7,34 +7,24 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.graphics.texture import Texture
 from kivy.logger import Logger
+from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout as BoxLayout
-from kivymd.uix.button import MDRaisedButton as Button
 from kivymd.uix.label import MDLabel as Label
 
 from layers import L1Dist
+from utils import register_attendance, preprocess
 
-MODEL_PATH = "siamese_model.keras"
-
-INPUT_IMG_DIR_PATH = os.path.join("application_data", "input_image")
-VERIF_IMG_DIR_PATH = os.path.join("application_data", "verification_images")
+INPUT_IMG_DIR_PATH = os.path.join("app_data", "input_image")
+VERIF_IMG_DIR_PATH = os.path.join("app_data", "verification_images")
 INPUT_IMG_PATH = os.path.join(INPUT_IMG_DIR_PATH, "input_image.jpg")
+ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
+
+MODEL_PATH = "siamese_model_v2.keras"
+EXAMPLE_DATA = ['Бейсенов Меирбек', 'Computer Science', 'МИС-22н']
 
 Window.maximize()
-
-
-# Загрузка изображения из файла и конвертация в 105x105px
-def preprocess(file_path):
-    # Чтение изображения
-    byte_img = tf.io.read_file(file_path)
-    # Загрузка изображения
-    img = tf.io.decode_jpeg(byte_img)
-    # Изменение размера изображения на 105x105
-    img = tf.image.resize(img, (105, 105))
-    # Масштабирование изображения в диапазоне от 0 до 1
-    img /= 255.0
-    return img
 
 
 class FaceIDApp(MDApp):
@@ -74,7 +64,7 @@ class FaceIDApp(MDApp):
         img_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         self.web_cam.texture = img_texture
 
-    def verify(self, model, detection_threshold=0.8, verification_threshold=0.6):
+    def verify(self, model, detection_threshold=0.99, verification_threshold=0.97):
         # Построение массива результатов прогнозов
         results = []
         for image in os.listdir(VERIF_IMG_DIR_PATH):
@@ -92,9 +82,14 @@ class FaceIDApp(MDApp):
         verification = detection / len(os.listdir(VERIF_IMG_DIR_PATH))
         verified = verification > verification_threshold
 
-        self.verification_label.text = ("Подтверждено" if verified else "Не подтверждено")
+        if verified:
+            register_attendance(*EXAMPLE_DATA, file_path=ATTENDANCE_RECORDS_PATH)
+            verification_label_text = "Подтверждено"
+        else:
+            verification_label_text = "Не подтверждено"
+        self.verification_label.text = verification_label_text
 
-        # Logger.info(results)
+        Logger.info(results)
         Logger.info(detection)
         Logger.info(verification)
         Logger.info(verified)
