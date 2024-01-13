@@ -1,4 +1,5 @@
 import csv
+import json
 from datetime import datetime
 
 import tensorflow as tf
@@ -62,3 +63,8 @@ def preprocess(file_path):
     # Масштабирование изображения в диапазоне от 0 до 1
     img /= 255.0
     return img
+
+
+def get_config(file_path):
+    with open(file_path, encoding='utf-8') as json_file:
+        return json.load(json_file)

@@ -1,0 +1,10 @@
+{
+  "model_path": "siamese_model_v2.keras",
+  "detection_threshold": 0.99,
+  "verification_threshold": 0.97,
+  "example_data": [
+    "Бейсенов Меирбек",
+    "Computer Science",
+    "МИС-22н"
+  ]
+}

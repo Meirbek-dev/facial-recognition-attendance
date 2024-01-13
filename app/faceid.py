@@ -14,15 +14,25 @@ from kivymd.uix.boxlayout import MDBoxLayout as BoxLayout
 from kivymd.uix.label import MDLabel as Label
 
 from layers import L1Dist
-from utils import register_attendance, preprocess
+from utils import register_attendance, preprocess, get_config
 
 INPUT_IMG_DIR_PATH = os.path.join("app_data", "input_image")
 VERIF_IMG_DIR_PATH = os.path.join("app_data", "verification_images")
 INPUT_IMG_PATH = os.path.join(INPUT_IMG_DIR_PATH, "input_image.jpg")
 ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
 
-MODEL_PATH = "siamese_model_v2.keras"
-EXAMPLE_DATA = ['Бейсенов Меирбек', 'Computer Science', 'МИС-22н']
+config = get_config('config.json')
+
+MODEL_PATH = config.get('model_path', '')
+EXAMPLE_DATA = config.get('example_data', [])
+
+DETECTION_THRESHOLD = config.get('detection_threshold', 0.0)
+VERIFICATION_THRESHOLD = config.get('verification_threshold', 0.0)
+
+print("MODEL_PATH:", MODEL_PATH)
+print("EXAMPLE_DATA:", EXAMPLE_DATA)
+print("DETECTION_THRESHOLD:", DETECTION_THRESHOLD)
+print("VERIFICATION_THRESHOLD:", VERIFICATION_THRESHOLD)
 
 Window.maximize()
 
@@ -64,7 +74,7 @@ class FaceIDApp(MDApp):
         img_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         self.web_cam.texture = img_texture
 
-    def verify(self, model, detection_threshold=0.99, verification_threshold=0.97):
+    def verify(self, model, detection_threshold=DETECTION_THRESHOLD, verification_threshold=VERIFICATION_THRESHOLD):
         # Построение массива результатов прогнозов
         results = []
         for image in os.listdir(VERIF_IMG_DIR_PATH):
@@ -84,6 +94,7 @@ class FaceIDApp(MDApp):
 
         if verified:
             register_attendance(*EXAMPLE_DATA, file_path=ATTENDANCE_RECORDS_PATH)
+            Logger.info(f"Подтврежден {EXAMPLE_DATA[0]} {EXAMPLE_DATA[1]} {EXAMPLE_DATA[2]}")
             verification_label_text = "Подтверждено"
         else:
             verification_label_text = "Не подтверждено"
