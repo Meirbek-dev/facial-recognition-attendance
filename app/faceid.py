@@ -29,11 +29,6 @@ EXAMPLE_DATA = config.get('example_data', [])
 DETECTION_THRESHOLD = config.get('detection_threshold', 0.0)
 VERIFICATION_THRESHOLD = config.get('verification_threshold', 0.0)
 
-print("MODEL_PATH:", MODEL_PATH)
-print("EXAMPLE_DATA:", EXAMPLE_DATA)
-print("DETECTION_THRESHOLD:", DETECTION_THRESHOLD)
-print("VERIFICATION_THRESHOLD:", VERIFICATION_THRESHOLD)
-
 Window.maximize()
 
 
@@ -94,7 +89,7 @@ class FaceIDApp(MDApp):
 
         if verified:
             register_attendance(*EXAMPLE_DATA, file_path=ATTENDANCE_RECORDS_PATH)
-            Logger.info(f"Подтврежден {EXAMPLE_DATA[0]} {EXAMPLE_DATA[1]} {EXAMPLE_DATA[2]}")
+            Logger.info(f"Подтврежден {EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}. ")
             verification_label_text = "Подтверждено"
         else:
             verification_label_text = "Не подтверждено"

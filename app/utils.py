@@ -7,7 +7,13 @@ import tensorflow as tf
 KZ_DATETIME_FMT = "%d.%m.%Y %H:%M:%S"
 
 
+def get_config(file_path):
+    with open(file_path, encoding='utf-8') as json_file:
+        return json.load(json_file)
+
+
 def register_attendance(name, faculty, group, file_path):
+    header = ['ID', 'Name', 'Faculty', 'Group', 'AttendanceTime']
     try:
         with open(file_path, newline='', encoding='utf-8') as file:
             # Проверка существования файла
@@ -16,15 +22,11 @@ def register_attendance(name, faculty, group, file_path):
 
             # Запись заголовка, если файл пуст
             if not first_char:
-                header = ['ID', 'Name', 'Faculty', 'Group', 'AttendanceTime']
-                writer = csv.writer(file)
-                writer.writerow(header)
+                csv.writer(file).writerow(header)
     except FileNotFoundError:
         # Создание файла с заголовком, в случае если файл не существует
         with open(file_path, 'w', newline='', encoding='utf-8') as file:
-            header = ['ID', 'Name', 'Faculty', 'Group', 'AttendanceTime']
-            writer = csv.writer(file)
-            writer.writerow(header)
+            csv.writer(file).writerow(header)
 
     # Получение текущей даты и времени
     current_datetime = datetime.now()
@@ -48,8 +50,7 @@ def register_attendance(name, faculty, group, file_path):
     # Запись данных в csv-файл
     data = [new_id, name, faculty, group, attendance_time]
     with open(file_path, 'a', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(data)
+        csv.writer(file).writerow(data)
 
 
 # Загрузка изображения из файла и конвертация в 105x105px
@@ -63,8 +64,3 @@ def preprocess(file_path):
     # Масштабирование изображения в диапазоне от 0 до 1
     img /= 255.0
     return img
-
-
-def get_config(file_path):
-    with open(file_path, encoding='utf-8') as json_file:
-        return json.load(json_file)
