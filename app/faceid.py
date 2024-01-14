@@ -15,7 +15,6 @@ from kivy.core.window import Window
 from kivy.graphics.texture import Texture
 from kivy.logger import Logger
 from kivy.uix.image import Image
-from kivy.uix.label import Label
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout as BoxLayout
 from kivymd.uix.button import MDRaisedButton as Button
@@ -42,12 +41,11 @@ class FaceIDApp(MDApp):
     def build(self):
         self.title = "Система распознавания лиц"
         self.theme_cls.theme_style = "Dark"
-        self.theme_cls.primary_palette = "Gray"
         
         # Главные компоненты
         self.web_cam = Image(size_hint=(1, 0.8))
         self.button = Button(text="Подтвердить", on_press=self.verify, size_hint=(1, 0.1), font_size="16sp",
-                             font_style="Body1", md_bg_color=(255, 255, 255, 1))
+                             md_bg_color=(255, 255, 255, 1), text_color=(0, 0, 0, 1))
         self.verification_label = Label(text="Начните подтверждение", size_hint=(1, 0.1), halign="center")
         
         # Размещение элементов на макете
@@ -100,7 +98,7 @@ class FaceIDApp(MDApp):
         img_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         self.web_cam.texture = img_texture
     
-    def verify(self, model):
+    def verify(self, *args):
         try:
             if self.face_roi.size != 0:
                 # Изменение размера изображения лица на 250x250px.

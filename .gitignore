@@ -19,3 +19,5 @@ training_checkpoints
 *.keras
 
 siam_net.ipynb
+
+app_data/attendance_records.csv
