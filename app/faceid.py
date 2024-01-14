@@ -1,3 +1,8 @@
+from kivy.config import Config
+
+Config.set('graphics', 'resizable', False)
+Config.set('graphics', 'maximizable', False)
+
 import os
 
 import cv2
@@ -9,17 +14,15 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.graphics.texture import Texture
 from kivy.logger import Logger
-from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout as BoxLayout
+from kivymd.uix.button import MDRaisedButton as Button
 from kivymd.uix.label import MDLabel as Label
 
 from layers import L1Dist
 from utils import register_attendance, preprocess, get_config
-
-Window.size = (640, 600)
 
 INPUT_IMG_DIR_PATH = os.path.join("app_data", "input_image")
 VERIF_IMG_DIR_PATH = os.path.join("app_data", "verification_images")
@@ -43,7 +46,8 @@ class FaceIDApp(MDApp):
         
         # Главные компоненты
         self.web_cam = Image(size_hint=(1, 0.8))
-        self.button = Button(text="Подтвердить", on_press=self.verify, size_hint=(1, 0.1))
+        self.button = Button(text="Подтвердить", on_press=self.verify, size_hint=(1, 0.1), font_size="16sp",
+                             font_style="Body1", md_bg_color=(255, 255, 255, 1))
         self.verification_label = Label(text="Начните подтверждение", size_hint=(1, 0.1), halign="center")
         
         # Размещение элементов на макете
@@ -60,6 +64,9 @@ class FaceIDApp(MDApp):
         
         # Настройка устройства видео-захвата
         self.capture = cv2.VideoCapture(0)
+        width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        Window.size = (width, height + 120)
         Clock.schedule_interval(self.update, 1.0 / 33.0)
         
         return layout
@@ -72,9 +79,9 @@ class FaceIDApp(MDApp):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
         # Обнаружение лиц в кадре
-        faces = self.detector(gray)
+        self.faces = self.detector(gray)
         
-        for face in faces:
+        for face in self.faces:
             # Извлечение ограничивающей рамки лица
             x, y, w, h = face.left(), face.top(), face.width(), face.height()
             
@@ -94,18 +101,21 @@ class FaceIDApp(MDApp):
         self.web_cam.texture = img_texture
     
     def verify(self, model):
-        if self.face_roi.size != 0:
-            # Изменение размера изображения лица на 250x250px.
-            face_image = cv2.resize(self.face_roi, (250, 250))
-            
-            # Преобразование изображения из BGR в RGB (OpenCV использует BGR, а Pillow использует RGB).
-            face_image_rgb = cv2.cvtColor(face_image, cv2.COLOR_BGR2RGB)
-            
-            # Создание Pillow-изображения из массива NumPy.
-            pil_image = PILImage.fromarray(face_image_rgb)
-            
-            pil_image.save(str(INPUT_IMG_PATH))
-        
+        try:
+            if self.face_roi.size != 0:
+                # Изменение размера изображения лица на 250x250px.
+                face_image = cv2.resize(self.face_roi, (250, 250))
+                self.face_roi = None
+                # Преобразование изображения из BGR в RGB (OpenCV использует BGR, а Pillow использует RGB).
+                face_image_rgb = cv2.cvtColor(face_image, cv2.COLOR_BGR2RGB)
+                
+                # Создание Pillow-изображения из массива NumPy.
+                pil_image = PILImage.fromarray(face_image_rgb)
+                
+                pil_image.save(str(INPUT_IMG_PATH))
+        except AttributeError:
+            self.verification_label.text = "Лицо не обнаружено!"
+            return
         # Построение массива результатов прогнозов
         results = []
         for image in os.listdir(VERIF_IMG_DIR_PATH):
@@ -123,7 +133,7 @@ class FaceIDApp(MDApp):
         verification = detection / len(os.listdir(VERIF_IMG_DIR_PATH))
         verified = verification > VERIFICATION_THRESHOLD
         
-        if not verified:
+        if verified:
             register_attendance(*EXAMPLE_DATA, file_path=ATTENDANCE_RECORDS_PATH)
             Logger.info(f"Подтврежден {EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}. ")
             verification_label_text = "Подтверждено"

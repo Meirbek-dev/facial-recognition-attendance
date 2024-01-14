@@ -19,7 +19,7 @@ def register_attendance(name, faculty, group, file_path):
             # Проверка существования файла
             first_char = file.read(1)
             file.seek(0)  # Сброс указателя файла на начало
-
+            
             # Запись заголовка, если файл пуст
             if not first_char:
                 csv.writer(file).writerow(header)
@@ -27,11 +27,11 @@ def register_attendance(name, faculty, group, file_path):
         # Создание файла с заголовком, в случае если файл не существует
         with open(file_path, 'w', newline='', encoding='utf-8') as file:
             csv.writer(file).writerow(header)
-
+    
     # Получение текущей даты и времени
     current_datetime = datetime.now()
     attendance_time = current_datetime.strftime(KZ_DATETIME_FMT)
-
+    
     # Считывание существующих ID
     existing_ids = set()
     try:
@@ -41,12 +41,12 @@ def register_attendance(name, faculty, group, file_path):
             existing_ids = {int(row[0]) for row in reader}
     except FileNotFoundError:
         pass
-
+    
     # Сгенерировать новый ID
     new_id = 1
     while new_id in existing_ids:
         new_id += 1
-
+    
     # Запись данных в csv-файл
     data = [new_id, name, faculty, group, attendance_time]
     with open(file_path, 'a', newline='', encoding='utf-8') as file:
