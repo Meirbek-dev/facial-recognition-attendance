@@ -8,7 +8,6 @@ import os
 import cv2
 import dlib
 import numpy as np
-import tensorflow as tf
 from PIL import Image as PILImage
 from kivy.clock import Clock
 from kivy.core.window import Window
@@ -20,8 +19,7 @@ from kivymd.uix.boxlayout import MDBoxLayout as BoxLayout
 from kivymd.uix.button import MDRaisedButton as Button
 from kivymd.uix.label import MDLabel as Label
 
-from layers import L1Dist
-from utils import register_attendance, preprocess, get_config
+from utils import (register_attendance, preprocess, get_config, load_model, setup_video_capture, setup_web_cam_texture)
 
 INPUT_IMG_DIR_PATH = os.path.join("app_data", "input_image")
 VERIF_IMG_DIR_PATH = os.path.join("app_data", "verification_images")
@@ -29,21 +27,32 @@ INPUT_IMG_PATH = os.path.join(INPUT_IMG_DIR_PATH, "input_image.jpg")
 ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
 
 config = get_config('config.json')
-
 MODEL_PATH = config.get('model_path', '')
 EXAMPLE_DATA = config.get('example_data', [])
-
 DETECTION_THRESHOLD = config.get('detection_threshold', 0.0)
 VERIFICATION_THRESHOLD = config.get('verification_threshold', 0.0)
 
 
 class FaceIDApp(MDApp):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.detector = dlib.get_frontal_face_detector()
+        self.model = load_model(MODEL_PATH)
+        self.capture = setup_video_capture(device_id=0)
+        self.web_cam_texture = setup_web_cam_texture()
+        self.setup_window_size()
+    
+    def setup_window_size(self):
+        width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        Window.size = (width, height + 120)
+    
     def build(self):
         self.title = "Система распознавания лиц"
         self.theme_cls.theme_style = "Dark"
         
         # Главные компоненты
-        self.web_cam = Image(size_hint=(1, 0.8))
+        self.web_cam = Image(size_hint=(1, 0.8), texture=self.web_cam_texture)
         self.button = Button(text="Подтвердить", on_press=self.verify, size_hint=(1, 0.1), font_size="16sp",
                              md_bg_color=(255, 255, 255, 1), text_color=(0, 0, 0, 1))
         self.verification_label = Label(text="Начните подтверждение", size_hint=(1, 0.1), halign="center")
@@ -54,19 +63,7 @@ class FaceIDApp(MDApp):
         layout.add_widget(self.button)
         layout.add_widget(self.verification_label)
         
-        # Загрузка модели
-        self.model = tf.keras.models.load_model(MODEL_PATH, custom_objects={"L1Dist": L1Dist})
-        
-        # Загрузка предварительно обученной модель распознавания лицы
-        self.detector = dlib.get_frontal_face_detector()
-        
-        # Настройка устройства видео-захвата
-        self.capture = cv2.VideoCapture(0)
-        width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-        height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        Window.size = (width, height + 120)
         Clock.schedule_interval(self.update, 1.0 / 33.0)
-        
         return layout
     
     # Непрерывное считывание изображения с веб-камеры.
@@ -77,9 +74,9 @@ class FaceIDApp(MDApp):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
         # Обнаружение лиц в кадре
-        self.faces = self.detector(gray)
+        faces = self.detector(gray)
         
-        for face in self.faces:
+        for face in faces:
             # Извлечение ограничивающей рамки лица
             x, y, w, h = face.left(), face.top(), face.width(), face.height()
             
@@ -109,20 +106,15 @@ class FaceIDApp(MDApp):
                 
                 # Создание Pillow-изображения из массива NumPy.
                 pil_image = PILImage.fromarray(face_image_rgb)
-                
                 pil_image.save(str(INPUT_IMG_PATH))
         except AttributeError:
             self.verification_label.text = "Лицо не обнаружено!"
             return
-        # Построение массива результатов прогнозов
-        results = []
-        for image in os.listdir(VERIF_IMG_DIR_PATH):
-            input_img = preprocess(INPUT_IMG_PATH)
-            validation_img = preprocess(os.path.join(VERIF_IMG_DIR_PATH, image))
-            
-            # Результаты прогнозов
-            result = self.model.predict(list(np.expand_dims([input_img, validation_img], axis=1)))
-            results.append(result)
+        
+        # Результаты прогнозов
+        results = [self.model.predict([np.expand_dims(preprocess(INPUT_IMG_PATH), axis=0),
+                                       np.expand_dims(preprocess(os.path.join(VERIF_IMG_DIR_PATH, image)), axis=0)]) for
+                   image in os.listdir(VERIF_IMG_DIR_PATH)]
         
         # Порог обнаружения: Показатель, прогноз выше которого  считается положительным
         detection = np.sum(np.array(results) > DETECTION_THRESHOLD)
@@ -131,21 +123,17 @@ class FaceIDApp(MDApp):
         verification = detection / len(os.listdir(VERIF_IMG_DIR_PATH))
         verified = verification > VERIFICATION_THRESHOLD
         
-        if verified:
-            register_attendance(*EXAMPLE_DATA, file_path=ATTENDANCE_RECORDS_PATH)
-            Logger.info(f"Подтврежден {EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}. ")
-            verification_label_text = "Подтверждено"
-        else:
-            verification_label_text = "Не подтверждено"
-        
+        verification_label_text = "Подтверждено" if verified else "Не подтверждено"
         self.verification_label.text = verification_label_text
         
         Logger.info(results)
         Logger.info(detection)
-        Logger.info(verification)
-        Logger.info(verified)
+        Logger.info(f"Точность подтверждения: {verification * 100:.2f}%")
+        Logger.info(f"Статус подтверждения: {verified}")
         
-        return results, verified
+        if verified:
+            register_attendance(*EXAMPLE_DATA, file_path=ATTENDANCE_RECORDS_PATH)
+            Logger.info(f"Подтврежден {EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}. ")
 
 
 if __name__ == "__main__":

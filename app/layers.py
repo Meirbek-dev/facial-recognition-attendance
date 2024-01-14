@@ -12,4 +12,4 @@ class L1Dist(Layer):
     
     # Вычисление схожести
     def call(self, input_embedding, validation_embedding):
-        return tf.math.abs(input_embedding - validation_embedding)
+        return tf.abs(input_embedding - validation_embedding)

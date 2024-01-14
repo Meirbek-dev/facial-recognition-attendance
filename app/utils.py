@@ -2,7 +2,12 @@ import csv
 import json
 from datetime import datetime
 
+import cv2
 import tensorflow as tf
+from kivy.graphics.texture import Texture
+from kivy.logger import Logger
+
+from layers import L1Dist
 
 DATETIME_FMT = "%d.%m.%Y %H:%M:%S"
 ENCODING = "utf-8"
@@ -14,7 +19,30 @@ def get_config(file_path):
         return json.load(json_file)
 
 
-def ensure_file_exists(file_path, header):
+def setup_video_capture(device_id):
+    try:
+        return cv2.VideoCapture(device_id)
+    except Exception as e:
+        Logger.error(f"Ошибка при подключении к устройству видео-захвата: {e}")
+        return None
+
+
+def setup_web_cam_texture():
+    texture = Texture.create(size=(1, 1), colorfmt="bgr")
+    texture.flip_vertical()
+    texture.flip_horizontal()
+    return texture
+
+
+def load_model(path):
+    try:
+        return tf.keras.models.load_model(path, custom_objects={"L1Dist": L1Dist})
+    except Exception as e:
+        Logger.error(f"Ошибка при загрузке модели: {e}")
+        return None
+
+
+def ensure_csv_file_exists(file_path, header):
     with open(file_path, "a+", newline='', encoding=ENCODING) as file:
         file.seek(0)
         existing_content = file.read()
@@ -24,13 +52,8 @@ def ensure_file_exists(file_path, header):
 
 
 # Считывание существующих ID
-def get_existing_ids(file_path):
-    try:
-        with open(file_path, newline='', encoding=ENCODING) as file:
-            reader = csv.DictReader(file)
-            return {int(row['ID']) for row in reader if 'ID' in row and row['ID'].isdigit()}
-    except FileNotFoundError:
-        return set()
+def get_existing_ids(data):
+    return {int(row['ID']) for row in data if 'ID' in row and row['ID'].isdigit()}
 
 
 # Генерация нового ID
@@ -38,26 +61,35 @@ def generate_new_id(existing_ids):
     return max(existing_ids, default=0) + 1
 
 
-def write_row_to_csv(file_path, header, data):
+def read_csv(file_path):
+    try:
+        with open(file_path, newline='', encoding=ENCODING) as file:
+            return list(csv.DictReader(file))
+    except FileNotFoundError:
+        return []
+
+
+def write_rows_to_csv(file_path, header, data):
     with open(file_path, 'a', newline='', encoding=ENCODING) as file:
         writer = csv.DictWriter(file, fieldnames=header)
         if file.tell() == 0:
             # Создание файла с заголовком, в случае если файл не существует
             writer.writeheader()
-        writer.writerow(dict(zip(header, data)))
+        writer.writerows(data)
 
 
 def register_attendance(name, faculty, group, file_path):
-    ensure_file_exists(file_path, HEADER)
+    ensure_csv_file_exists(file_path, HEADER)
+    data = read_csv(file_path)
+    
     # Получение текущей даты и времени
     attendance_time = datetime.now().strftime(DATETIME_FMT)
     
-    existing_ids = get_existing_ids(file_path)
-    new_id = generate_new_id(existing_ids)
+    new_id = generate_new_id(get_existing_ids(data))
     
     # Запись данных в csv-файл
-    data = [new_id, name, faculty, group, attendance_time]
-    write_row_to_csv(file_path, HEADER, data)
+    new_row = {'ID': new_id, 'Name': name, 'Faculty': faculty, 'Group': group, 'AttendanceTime': attendance_time}
+    write_rows_to_csv(file_path, HEADER, [new_row])
 
 
 # Загрузка изображения из файла и конвертация в 105x105px
