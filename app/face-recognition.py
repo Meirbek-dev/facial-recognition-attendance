@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 
 import customtkinter as ctk
 import cv2
@@ -40,6 +41,26 @@ class FaceRecognitionAttendance(ctk.CTk):
         
         self.update()
     
+    def face_verification_thread(self, face):
+        try:
+            # Results of DeepFace.verify
+            results = [
+                DeepFace.verify(INPUT_IMG_PATH, os.path.join(VERIF_IMG_DIR_PATH, image), detector_backend="mtcnn",
+                                model_name="Facenet512") for image in os.listdir(VERIF_IMG_DIR_PATH)]
+            
+            logger.info(f"Статус подтверждения: {results[0]['verified']}")
+            logger.info(f"Уверенность подтверждения: {face['confidence'] * 10:.2f}%")
+            
+            if not results[0]['verified']:
+                self.status_label.configure(text="Не подтверждено")
+                return
+            
+            utils.register_attendance(*EXAMPLE_DATA, file_path=ATTENDANCE_RECORDS_PATH)
+            logger.info(f"Подтврежден {EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}. ")
+            self.status_label.configure(text="Подтверждено")
+        except Exception as e:
+            logger.error(f"Ошибка во время подтверждения: {e}")
+    
     def verify(self):
         # Обнаружение лиц в кадре
         try:
@@ -52,24 +73,12 @@ class FaceRecognitionAttendance(ctk.CTk):
         
         cv2.imwrite(INPUT_IMG_PATH, self.frame)
         
-        # Результаты прогнозов
-        results = [DeepFace.verify(INPUT_IMG_PATH, os.path.join(VERIF_IMG_DIR_PATH, image), detector_backend="mtcnn",
-                                   model_name="Facenet512") for image in os.listdir(VERIF_IMG_DIR_PATH)]
-        
-        logger.info(f"Статус подтверждения: {results[0]['verified']}")
-        logger.info(f"Уверенность подтверждения: {face['confidence'] * 10:.2f}%")
-        
-        if not results[0]['verified']:
-            self.status_label.configure(text="Не подтверждено")
-            return
-        
-        utils.register_attendance(*EXAMPLE_DATA, file_path=ATTENDANCE_RECORDS_PATH)
-        logger.info(f"Подтврежден {EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}. ")
-        self.status_label.configure(text="Подтверждено")
+        verification_thread = threading.Thread(target=self.face_verification_thread, args=(face,))
+        verification_thread.start()
     
     def update(self):
         _, self.frame = self.capture.read()
-        utils.draw_rectangles_around_faces(self.frame, self.detector)
+        utils.draw_rectangle_around_face(self.frame)
         frame = utils.convert_to_tkinter_image(self.frame)
         
         # Настройка метки для отображения кадров

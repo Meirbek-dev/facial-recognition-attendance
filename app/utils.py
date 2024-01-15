@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 from PIL import Image, ImageTk
+from deepface import DeepFace
 
 from layers import L1Dist
 
@@ -91,6 +92,18 @@ def preprocess(file_path):
     img = img.resize((105, 105))
     img_array = np.array(img) / 255.0
     return img_array
+
+
+def draw_rectangle_around_face(frame):
+    try:
+        faces = DeepFace.extract_faces(frame, detector_backend="ssd", enforce_detection=False)
+        face = faces[0]
+    except ValueError as e:
+        logger.error(e)
+        return ValueError
+    x, y, w, h = map(int, (
+        face['facial_area']['x'], face['facial_area']['y'], face['facial_area']['w'], face['facial_area']['h']))
+    cv2.rectangle(frame, (x - 5, y - 5), (x + w + 5, y + h + 5), (0, 255, 0), 2)
 
 
 def draw_rectangles_around_faces(frame, detector):
