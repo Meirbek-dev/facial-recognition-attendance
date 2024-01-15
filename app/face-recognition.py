@@ -1,6 +1,7 @@
 import logging
 import os
 import threading
+from tkinter import ttk
 
 import customtkinter as ctk
 import cv2
@@ -34,16 +35,22 @@ class FaceRecognitionAttendance(ctk.CTk):
         
         width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        ui.create_window(self, width, height + 140)
+        ui.create_window(self, width, height + 180)
         ui.display_verification_button(self, self.verify)
         ui.display_exit_button(self, self.destroy)
         self.status_label = ui.get_status_label(self, text="Начните подтверждение")
-        
+        self.progress_bar = ttk.Progressbar(self, mode='indeterminate', length=300)
         self.update()
     
     def face_verification_thread(self, face):
         try:
-            # Results of DeepFace.verify
+            try:
+                self.info_label.grid_forget()
+            except AttributeError:
+                pass
+            self.status_label.configure(text="Выполняется подтверждение!")
+            ui.display_progress_bar(self)
+            
             results = [
                 DeepFace.verify(INPUT_IMG_PATH, os.path.join(VERIF_IMG_DIR_PATH, image), detector_backend="mtcnn",
                                 model_name="Facenet512") for image in os.listdir(VERIF_IMG_DIR_PATH)]
@@ -56,10 +63,13 @@ class FaceRecognitionAttendance(ctk.CTk):
                 return
             
             utils.register_attendance(*EXAMPLE_DATA, file_path=ATTENDANCE_RECORDS_PATH)
+            self.info_label = ui.get_info_label(self, text=f"{EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}")
             logger.info(f"Подтврежден {EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}. ")
             self.status_label.configure(text="Подтверждено")
         except Exception as e:
             logger.error(f"Ошибка во время подтверждения: {e}")
+        finally:
+            ui.hide_progress_bar(self)
     
     def verify(self):
         # Обнаружение лиц в кадре
