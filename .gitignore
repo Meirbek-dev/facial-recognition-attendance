@@ -12,14 +12,10 @@ data/negative/*
 data/positive/*
 
 app_data/input_image/*
-app_data/verification_images/*
+app_data/verification_image/*
 
 training_checkpoints
 
 *.keras
 
-siam_net.ipynb
-
 app_data/attendance_records.csv
-
-df.py

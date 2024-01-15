@@ -14,7 +14,7 @@ import utils
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-VERIF_IMG_DIR_PATH = os.path.join("app_data", "verification_images")
+VERIF_IMG_PATH = os.path.join("app_data", "verification_image", "verification_image.jpg")
 INPUT_IMG_PATH = os.path.join("app_data", "input_image", "input_image.jpg")
 ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
 
@@ -51,14 +51,12 @@ class FaceRecognitionAttendance(ctk.CTk):
             self.status_label.configure(text="Выполняется подтверждение!")
             ui.display_progress_bar(self)
             
-            results = [
-                DeepFace.verify(INPUT_IMG_PATH, os.path.join(VERIF_IMG_DIR_PATH, image), detector_backend="mtcnn",
-                                model_name="Facenet512") for image in os.listdir(VERIF_IMG_DIR_PATH)]
+            results = DeepFace.verify(INPUT_IMG_PATH, VERIF_IMG_PATH, detector_backend="mtcnn", model_name="Facenet")
             
-            logger.info(f"Статус подтверждения: {results[0]['verified']}")
-            logger.info(f"Уверенность подтверждения: {face['confidence'] * 10:.2f}%")
+            logger.info(f"Статус подтверждения: {results['verified']}")
+            logger.info(f"Уверенность подтверждения: {face['confidence'] * 100:.2f}%")
             
-            if not results[0]['verified']:
+            if not results['verified']:
                 self.status_label.configure(text="Не подтверждено")
                 return
             
@@ -74,7 +72,7 @@ class FaceRecognitionAttendance(ctk.CTk):
     def verify(self):
         # Обнаружение лиц в кадре
         try:
-            faces = DeepFace.extract_faces(self.frame)
+            faces = DeepFace.extract_faces(self.frame, detector_backend="mtcnn")
             face = faces[0]
         except ValueError as e:
             self.status_label.configure(text="Лицо не обнаружено!")
