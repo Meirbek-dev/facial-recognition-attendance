@@ -19,7 +19,7 @@ def get_web_cam_label(master):
     return web_cam_label
 
 
-def get_verification_label(master, text):
+def get_status_label(master, text):
     verification_label = ctk.CTkLabel(master, text=text, anchor="w", font=ctk.CTkFont(size=16, weight="bold"), )
     verification_label.grid(row=1, padx=20, columnspan=2, pady=20)
     return verification_label

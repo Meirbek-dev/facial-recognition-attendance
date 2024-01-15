@@ -4,8 +4,8 @@ import logging
 from datetime import datetime
 
 import cv2
+import numpy as np
 import tensorflow as tf
-# from kivy.graphics.texture import Texture
 from PIL import Image, ImageTk
 
 from layers import L1Dist
@@ -35,13 +35,6 @@ def convert_to_tkinter_image(frame):
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     img = Image.fromarray(rgb_frame)
     return ImageTk.PhotoImage(image=img)
-
-
-# def setup_web_cam_texture():
-#     texture = Texture.create(size=(1, 1), colorfmt="bgr")
-#     texture.flip_vertical()
-#     texture.flip_horizontal()
-#     return texture
 
 
 def load_model(path):
@@ -94,10 +87,31 @@ def register_attendance(name, faculty, group, file_path):
 
 # Загрузка изображения из файла и конвертация в 105x105px
 def preprocess(file_path):
-    # Чтение и загрузка изображения
-    img = tf.io.decode_image(tf.io.read_file(file_path))
-    # Изменение размера изображения на 105x105
-    img = tf.image.resize(img, (105, 105))
-    # Масштабирование изображения в диапазоне от 0 до 1
-    img /= 255.0
-    return img
+    img = Image.open(file_path)
+    img = img.resize((105, 105))
+    img_array = np.array(img) / 255.0
+    return img_array
+
+
+def draw_rectangles_around_faces(frame, detector):
+    # Преобразование кадра в оттенки серого
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    # Обнаружение лиц в кадре
+    faces = detector(gray)
+    try:
+        face = faces[0]
+    except IndexError:
+        return
+    
+    # Извлечение ограничивающей рамки лица
+    x, y, w, h = face.left(), face.top(), face.width(), face.height()
+    
+    # Проверка, что область лица находится в пределах границ кадра
+    if 0 <= x < frame.shape[1] and 0 <= y < frame.shape[0] and w > 0 and h > 0:
+        # Обрезание области лица
+        face_roi = frame[y:y + h, x:x + w]
+        
+        if face_roi.size != 0:
+            # Обрисовка прямоугольника вокруг обнаруженного лица
+            cv2.rectangle(frame, (x - 5, y - 5), (x + w + 5, y + h + 5), (0, 255, 0), 2)

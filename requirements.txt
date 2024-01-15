@@ -1,12 +1,8 @@
 keras==2.15.0
-kivy==2.3.0
-kivymd==1.1.1
-matplotlib==3.8.0
 numpy==1.26.3
 tensorflow==2.15.0
 opencv-python==4.9.0.80
 dlib==19.24.2
 pillow==10.2.0
-
 deepface==0.0.81
 customtkinter==5.2.2
