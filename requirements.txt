@@ -6,3 +6,6 @@ dlib==19.24.2
 pillow==10.2.0
 deepface==0.0.81
 customtkinter==5.2.2
+
+kivy==2.3.0
+kivymd==1.1.1
