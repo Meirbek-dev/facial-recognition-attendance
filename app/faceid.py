@@ -12,14 +12,13 @@ from PIL import Image as PILImage
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.graphics.texture import Texture
-from kivy.logger import Logger
 from kivy.uix.image import Image
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout as BoxLayout
 from kivymd.uix.button import MDRaisedButton as Button
 from kivymd.uix.label import MDLabel as Label
 
-from utils import (register_attendance, preprocess, get_config, load_model, setup_video_capture, setup_web_cam_texture)
+from utils import (register_attendance, logger, preprocess, get_config, load_model, setup_video_capture, setup_web_cam_texture)
 
 INPUT_IMG_DIR_PATH = os.path.join("app_data", "input_image")
 VERIF_IMG_DIR_PATH = os.path.join("app_data", "verification_images")
@@ -38,7 +37,7 @@ class FaceIDApp(MDApp):
         super().__init__(**kwargs)
         self.detector = dlib.get_frontal_face_detector()
         self.model = load_model(MODEL_PATH)
-        self.capture = setup_video_capture(device_id=0)
+        self.capture = setup_video_capture(video_source=0)
         self.web_cam_texture = setup_web_cam_texture()
         self.setup_window_size()
     
@@ -126,14 +125,14 @@ class FaceIDApp(MDApp):
         verification_label_text = "Подтверждено" if verified else "Не подтверждено"
         self.verification_label.text = verification_label_text
         
-        Logger.info(results)
-        Logger.info(detection)
-        Logger.info(f"Точность подтверждения: {verification * 100:.2f}%")
-        Logger.info(f"Статус подтверждения: {verified}")
+        logger.info(results)
+        logger.info(detection)
+        logger.info(f"Точность подтверждения: {verification * 100:.2f}%")
+        logger.info(f"Статус подтверждения: {verified}")
         
         if verified:
             register_attendance(*EXAMPLE_DATA, file_path=ATTENDANCE_RECORDS_PATH)
-            Logger.info(f"Подтврежден {EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}. ")
+            logger.info(f"Подтврежден {EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}. ")
 
 
 if __name__ == "__main__":
