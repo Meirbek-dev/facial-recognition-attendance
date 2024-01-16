@@ -15,15 +15,12 @@ logging.basicConfig(level=logging.INFO)
 
 config = utils.load_json('config.json')
 EXAMPLE_ID = config.get("example_id", "")
-DETECTION_THRESHOLD = config.get('detection_threshold', 0.0)
-VERIFICATION_THRESHOLD = config.get('verification_threshold', 0.0)
 VIDEO_SOURCE = config.get('video_source', 0)
 
 VERIF_IMGS_DIR_PATH = os.path.join("app_data", "verification_data")
+VERIF_IMG_PATH = os.path.join(VERIF_IMGS_DIR_PATH, EXAMPLE_ID, "verification_image.jpg")
 INPUT_IMG_PATH = os.path.join("app_data", "input_image", "input_image.jpg")
 ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
-
-VERIF_IMG_PATH = os.path.join(VERIF_IMGS_DIR_PATH, EXAMPLE_ID, "verification_image.jpg")
 
 
 class FaceRecognitionAttendance(ctk.CTk):
