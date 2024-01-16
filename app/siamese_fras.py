@@ -17,16 +17,16 @@ from kivymd.uix.boxlayout import MDBoxLayout as BoxLayout
 from kivymd.uix.label import MDLabel as Label
 
 from layers import L1Dist
-from utils import register_attendance, preprocess, get_config
+from utils import register_attendance, preprocess, load_json
 
 Window.size = (640, 600)
 
 INPUT_IMG_DIR_PATH = os.path.join("app_data", "input_image")
-VERIF_IMG_DIR_PATH = os.path.join("app_data", "verification_images")
+VERIF_IMG_DIR_PATH = os.path.join("app_data", "verification_data")
 INPUT_IMG_PATH = os.path.join(INPUT_IMG_DIR_PATH, "input_image.jpg")
 ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
 
-config = get_config('config.json')
+config = load_json('config.json')
 
 MODEL_PATH = config.get('model_path', '')
 EXAMPLE_DATA = config.get('example_data', [])

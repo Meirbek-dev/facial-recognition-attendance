@@ -5,8 +5,7 @@ from tkinter import ttk
 
 import customtkinter as ctk
 import cv2
-import dlib
-from deepface import DeepFace
+from deepface.DeepFace import verify, extract_faces
 
 import ui
 import utils
@@ -14,21 +13,22 @@ import utils
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-VERIF_IMG_PATH = os.path.join("app_data", "verification_image", "verification_image.jpg")
-INPUT_IMG_PATH = os.path.join("app_data", "input_image", "input_image.jpg")
-ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
-
-config = utils.get_config('config.json')
-EXAMPLE_DATA = config.get('example_data', [])
+config = utils.load_json('config.json')
+EXAMPLE_ID = config.get("example_id", "")
 DETECTION_THRESHOLD = config.get('detection_threshold', 0.0)
 VERIFICATION_THRESHOLD = config.get('verification_threshold', 0.0)
 VIDEO_SOURCE = config.get('video_source', 0)
+
+VERIF_IMGS_DIR_PATH = os.path.join("app_data", "verification_data")
+INPUT_IMG_PATH = os.path.join("app_data", "input_image", "input_image.jpg")
+ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
+
+VERIF_IMG_PATH = os.path.join(VERIF_IMGS_DIR_PATH, EXAMPLE_ID, "verification_image.jpg")
 
 
 class FaceRecognitionAttendance(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.detector = dlib.get_frontal_face_detector()
         self.capture = utils.setup_video_capture(video_source=VIDEO_SOURCE)
         
         self.web_cam_label = ui.get_web_cam_label(self)
@@ -51,7 +51,7 @@ class FaceRecognitionAttendance(ctk.CTk):
             self.status_label.configure(text="Выполняется подтверждение!")
             ui.display_progress_bar(self)
             
-            results = DeepFace.verify(INPUT_IMG_PATH, VERIF_IMG_PATH, detector_backend="mtcnn", model_name="Facenet")
+            results = verify(INPUT_IMG_PATH, VERIF_IMG_PATH, detector_backend="mtcnn", model_name="Facenet")
             
             logger.info(f"Статус подтверждения: {results['verified']}")
             logger.info(f"Уверенность подтверждения: {face['confidence'] * 100:.2f}%")
@@ -60,9 +60,10 @@ class FaceRecognitionAttendance(ctk.CTk):
                 self.status_label.configure(text="Не подтверждено")
                 return
             
-            utils.register_attendance(*EXAMPLE_DATA, file_path=ATTENDANCE_RECORDS_PATH)
-            self.info_label = ui.get_info_label(self, text=f"{EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}")
-            logger.info(f"Подтврежден {EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}. ")
+            user_data = utils.register_attendance(EXAMPLE_ID, file_path=ATTENDANCE_RECORDS_PATH)
+            self.info_label = ui.get_info_label(self, text=f"{user_data['last_name']} {user_data['first_name']}, "
+                                                           f"{user_data['faculty']}, {user_data['group']}")
+            
             self.status_label.configure(text="Подтверждено")
         except Exception as e:
             logger.error(f"Ошибка во время подтверждения: {e}")
@@ -72,7 +73,7 @@ class FaceRecognitionAttendance(ctk.CTk):
     def verify(self):
         # Обнаружение лиц в кадре
         try:
-            faces = DeepFace.extract_faces(self.frame, detector_backend="mtcnn")
+            faces = extract_faces(self.frame, detector_backend="mtcnn")
             face = faces[0]
         except ValueError as e:
             self.status_label.configure(text="Лицо не обнаружено!")

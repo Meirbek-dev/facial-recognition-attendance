@@ -12,7 +12,7 @@ data/negative/*
 data/positive/*
 
 app_data/input_image/*
-app_data/verification_image/*
+app_data/verification_data/*
 
 training_checkpoints
 

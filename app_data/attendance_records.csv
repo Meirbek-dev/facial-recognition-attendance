@@ -1,3 +1,2 @@
-ID,Name,Faculty,Group,AttendanceTime
-1,Бейсенов Меирбек,Computer Science,МИС-22н,15.01.2024 21:51:26
-2,Бейсенов Меирбек,Computer Science,МИС-22н,15.01.2024 21:52:02
+UserID,FirstName,LastName,Faculty,Group,AttendanceTime
+000507,Меирбек,Бейсенов,Computer Science,МИС-22н,16.01.2024 12:46:49
