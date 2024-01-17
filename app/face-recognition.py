@@ -39,14 +39,26 @@ class FaceRecognitionAttendance(ctk.CTk):
         self.progress_bar = ttk.Progressbar(self, mode='indeterminate', length=300)
         self.update()
     
-    def face_verification_thread(self, face):
+    def face_verification_thread(self):
         try:
+            self.status_label.configure(text="Выполняется подтверждение!")
+            ui.display_progress_bar(self)
+            
             try:
                 self.info_label.grid_forget()
             except AttributeError:
                 pass
-            self.status_label.configure(text="Выполняется подтверждение!")
-            ui.display_progress_bar(self)
+            
+            # Обнаружение лиц в кадре
+            try:
+                faces = extract_faces(self.frame, detector_backend="mtcnn")
+                face = faces[0]
+            except ValueError as e:
+                self.status_label.configure(text="Лицо не обнаружено!")
+                logger.error(e)
+                return
+            
+            cv2.imwrite(INPUT_IMG_PATH, self.frame)
             
             results = verify(INPUT_IMG_PATH, VERIF_IMG_PATH, detector_backend="mtcnn", model_name="Facenet")
             
@@ -68,18 +80,7 @@ class FaceRecognitionAttendance(ctk.CTk):
             ui.hide_progress_bar(self)
     
     def verify(self):
-        # Обнаружение лиц в кадре
-        try:
-            faces = extract_faces(self.frame, detector_backend="mtcnn")
-            face = faces[0]
-        except ValueError as e:
-            self.status_label.configure(text="Лицо не обнаружено!")
-            logger.error(e)
-            return
-        
-        cv2.imwrite(INPUT_IMG_PATH, self.frame)
-        
-        verification_thread = threading.Thread(target=self.face_verification_thread, args=(face,))
+        verification_thread = threading.Thread(target=self.face_verification_thread, args=())
         verification_thread.start()
     
     def update(self):
