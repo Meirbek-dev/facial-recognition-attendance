@@ -8,15 +8,9 @@
 .ipynb_checkpoints
 __pycache__
 
-data/anchor/*
-data/negative/*
-data/positive/*
+data/*
 
 app_data/input_image/*
 app_data/verification_data/*
 
-training_checkpoints
-
 *.keras
-
-app_data/attendance_records.csv

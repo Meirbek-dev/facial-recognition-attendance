@@ -1,7 +1,6 @@
 import logging
 import os
 import threading
-from tkinter import ttk
 
 import customtkinter as ctk
 import cv2
@@ -36,7 +35,7 @@ class FaceRecognitionAttendance(ctk.CTk):
         ui.display_verification_button(self, self.verify)
         ui.display_exit_button(self, self.destroy)
         self.status_label = ui.get_status_label(self, text="Начните подтверждение")
-        self.progress_bar = ttk.Progressbar(self, mode='indeterminate', length=300)
+        self.progress_bar = ctk.CTkProgressBar(self, mode='indeterminate')
         self.update()
     
     def face_verification_thread(self):
@@ -60,7 +59,7 @@ class FaceRecognitionAttendance(ctk.CTk):
             
             cv2.imwrite(INPUT_IMG_PATH, self.frame)
             
-            results = verify(INPUT_IMG_PATH, VERIF_IMG_PATH, detector_backend="mtcnn", model_name="Facenet")
+            results = verify(INPUT_IMG_PATH, VERIF_IMG_PATH, detector_backend="mtcnn", model_name="Facenet512")
             
             logger.info(f"Статус подтверждения: {results['verified']}")
             logger.info(f"Уверенность подтверждения: {face['confidence'] * 100:.2f}%")
