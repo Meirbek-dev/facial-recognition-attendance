@@ -1,6 +1,6 @@
 {
   "video_source": 0,
-  "model_path": "siamese_model_v3.keras",
+  "model_path": "siamese_model.keras",
   "detection_threshold": 0.99,
   "verification_threshold": 0.2,
   "example_id": "000507"

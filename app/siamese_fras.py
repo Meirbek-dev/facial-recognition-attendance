@@ -42,12 +42,8 @@ class FaceIDApp(MDApp):
 
         # Главные компоненты
         self.web_cam = Image(size_hint=(1, 0.8))
-        self.button = Button(
-            text="Подтвердить", on_press=self.verify, size_hint=(1, 0.1)
-        )
-        self.verification_label = Label(
-            text="Начните подтверждение", size_hint=(1, 0.1), halign="center"
-        )
+        self.button = Button(text="Подтвердить", on_press=self.verify, size_hint=(1, 0.1))
+        self.verification_label = Label(text="Начните подтверждение", size_hint=(1, 0.1), halign="center")
 
         # Размещение элементов на макете
         layout = BoxLayout(orientation="vertical")
@@ -56,9 +52,7 @@ class FaceIDApp(MDApp):
         layout.add_widget(self.verification_label)
 
         # Загрузка модели
-        self.model = tf.keras.models.load_model(
-            MODEL_PATH, custom_objects={"L1Dist": L1Dist}
-        )
+        self.model = tf.keras.models.load_model(MODEL_PATH, custom_objects={"L1Dist": L1Dist})
 
         # Загрузка предварительно обученной модель распознавания лицы
         self.detector = dlib.get_frontal_face_detector()
@@ -86,19 +80,15 @@ class FaceIDApp(MDApp):
             # Проверка, что область лица находится в пределах границ кадра
             if 0 <= x < frame.shape[1] and 0 <= y < frame.shape[0] and w > 0 and h > 0:
                 # Обрезание области лица
-                self.face_roi = frame[y : y + h, x : x + w]
+                self.face_roi = frame[y: y + h, x: x + w]
 
                 if self.face_roi.size != 0:
                     # Обрисовка прямоугольника вокруг обнаруженного лица
-                    cv2.rectangle(
-                        frame, (x - 5, y - 5), (x + w + 5, y + h + 5), (0, 255, 0), 2
-                    )
+                    cv2.rectangle(frame, (x - 5, y - 5), (x + w + 5, y + h + 5), (0, 255, 0), 2)
 
         # Переворачивание по горизонтали и преобразовние изображения в текстуру
         buf = cv2.flip(frame, 0).tobytes()
-        img_texture = Texture.create(
-            size=(frame.shape[1], frame.shape[0]), colorfmt="bgr"
-        )
+        img_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt="bgr")
         img_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         self.web_cam.texture = img_texture
 
@@ -122,9 +112,7 @@ class FaceIDApp(MDApp):
             validation_img = preprocess(os.path.join(VERIF_IMG_DIR_PATH, image))
 
             # Результаты прогнозов
-            result = self.model.predict(
-                list(np.expand_dims([input_img, validation_img], axis=1))
-            )
+            result = self.model.predict(list(np.expand_dims([input_img, validation_img], axis=1)))
             results.append(result)
 
         # Порог обнаружения: Показатель, прогноз выше которого  считается положительным
@@ -136,9 +124,7 @@ class FaceIDApp(MDApp):
 
         if not verified:
             register_attendance(*EXAMPLE_DATA, file_path=ATTENDANCE_RECORDS_PATH)
-            Logger.info(
-                f"Подтврежден {EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}. "
-            )
+            Logger.info(f"Подтврежден {EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}. ")
             verification_label_text = "Подтверждено"
         else:
             verification_label_text = "Не подтверждено"

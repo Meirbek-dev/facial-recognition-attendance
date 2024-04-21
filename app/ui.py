@@ -4,11 +4,11 @@ import customtkinter as ctk
 
 
 def create_window(
-    master,
-    window_width,
-    window_height,
-    is_width_resizable=False,
-    is_height_resizable=False,
+        master,
+        window_width,
+        window_height,
+        is_width_resizable=False,
+        is_height_resizable=False,
 ):
     master.title("Система распознавания лиц")
     master.resizable(is_width_resizable, is_height_resizable)

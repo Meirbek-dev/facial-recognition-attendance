@@ -41,7 +41,7 @@ def convert_to_tkinter_image(frame):
 
 def draw_rectangle_around_face(frame):
     try:
-        faces = extract_faces(frame, detector_backend="ssd", enforce_detection=False)
+        faces = extract_faces(frame, detector_backend="yolov8", enforce_detection=False)
         face = faces[0]
     except ValueError as e:
         logger.error(e)
@@ -105,7 +105,7 @@ def register_attendance(user_id, file_path):
     }
 
     assert (
-        user_id == user_data["user_id"]
+            user_id == user_data["user_id"]
     ), "Пользователь с данным идентификатором не существует"
     # Получение текущей даты и времени
     attendance_time = datetime.now().strftime(DATETIME_FMT)
@@ -157,7 +157,7 @@ def draw_rectangles_around_faces(frame, detector):
     # Проверка, что область лица находится в пределах границ кадра
     if 0 <= x < frame.shape[1] and 0 <= y < frame.shape[0] and w > 0 and h > 0:
         # Обрезание области лица
-        face_roi = frame[y : y + h, x : x + w]
+        face_roi = frame[y: y + h, x: x + w]
 
         if face_roi.size != 0:
             # Обрисовка прямоугольника вокруг обнаруженного лица
