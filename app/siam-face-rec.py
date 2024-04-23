@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 
 config = utils.load_json("config.json")
 
-EXAMPLE_ID = config.get("example_id", "")
+USER_ID = config.get("example_id", "")
 VIDEO_SOURCE = config.get("video_source", 0)
 
 MODEL_PATH = config.get("model_path", "")
@@ -28,8 +28,7 @@ DETECTION_THRESHOLD = config.get("detection_threshold", 0.0)
 VERIFICATION_THRESHOLD = config.get("verification_threshold", 0.0)
 
 VERIF_IMGS_DIR_PATH = os.path.join("app_data", "verification_data")
-VERIF_IMG_PATH = os.path.join(VERIF_IMGS_DIR_PATH, EXAMPLE_ID, "verification_image.jpg")
-INPUT_IMG_DIR_PATH = os.path.join("app_data", "input_image")
+VERIF_IMG_PATH = os.path.join(VERIF_IMGS_DIR_PATH, USER_ID, "verification_image.jpg")
 INPUT_IMG_PATH = os.path.join("app_data", "input_image", "input_image.jpg")
 ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
 
@@ -82,7 +81,7 @@ class FaceRecognitionAttendance(ctk.CTk):
                 self.status_label.configure(text="Не подтверждено")
                 return
 
-            user_data = utils.register_attendance(EXAMPLE_ID, file_path=ATTENDANCE_RECORDS_PATH)
+            user_data = utils.register_attendance(USER_ID, file_path=ATTENDANCE_RECORDS_PATH)
             self.info_label = ui.get_info_label(self, text=f"{user_data['last_name']} {user_data['first_name']}, "
                                                            f"{user_data['faculty']}, {user_data['group']}", )
 
