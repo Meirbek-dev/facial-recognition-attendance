@@ -55,7 +55,7 @@ def draw_rectangle_around_face(frame):
             face["facial_area"]["h"],
         ),
     )
-    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    cv2.rectangle(frame, (x, y), (x + 10 + w + 10, y + 10 + h+10), (0, 255, 0), 2)
 
 
 def ensure_csv_file_exists(file_path, header):

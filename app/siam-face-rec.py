@@ -2,10 +2,12 @@ import logging
 import os
 import threading
 
+import tensorflow as tf
 import customtkinter as ctk
 import cv2
 from deepface.DeepFace import verify, extract_faces
 
+from layers import L1Dist
 import ui
 import utils
 
@@ -15,18 +17,23 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 config = utils.load_json("config.json")
+
 EXAMPLE_ID = config.get("example_id", "")
 VIDEO_SOURCE = config.get("video_source", 0)
 
-VERIF_IMGS_DIR_PATH = os.path.join("app_data", "verification_data")
-VERIF_IMG_PATH = os.path.join(VERIF_IMGS_DIR_PATH, EXAMPLE_ID, "verification_image.jpg")
-INPUT_IMG_PATH = os.path.join("app_data", "input_image", "input_image.jpg")
-ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
-
 MODEL_PATH = config.get("model_path", "")
+EXAMPLE_DATA = config.get("example_data", [])
 
 DETECTION_THRESHOLD = config.get("detection_threshold", 0.0)
 VERIFICATION_THRESHOLD = config.get("verification_threshold", 0.0)
+
+VERIF_IMGS_DIR_PATH = os.path.join("app_data", "verification_data")
+VERIF_IMG_PATH = os.path.join(VERIF_IMGS_DIR_PATH, EXAMPLE_ID, "verification_image.jpg")
+INPUT_IMG_DIR_PATH = os.path.join("app_data", "input_image")
+INPUT_IMG_PATH = os.path.join("app_data", "input_image", "input_image.jpg")
+ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
+
+
 
 class FaceRecognitionAttendance(ctk.CTk):
     def __init__(self):
@@ -44,7 +51,6 @@ class FaceRecognitionAttendance(ctk.CTk):
         ui.display_exit_button(self, self.destroy)
         self.status_label = ui.get_status_label(self, text="Начните подтверждение")
         self.progress_bar = ctk.CTkProgressBar(self, mode="indeterminate")
-
         self.update()
 
     def face_verification_thread(self):
@@ -100,7 +106,7 @@ class FaceRecognitionAttendance(ctk.CTk):
         self.web_cam_label.image = frame
 
         # Обновление кадра каждые 10 мс
-        self.after(10, self.update)
+        self.after(30, self.update)
 
 
 if __name__ == "__main__":
