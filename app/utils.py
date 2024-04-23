@@ -93,7 +93,6 @@ def get_user_data(user_id):
 def register_attendance(user_id, file_path):
     ensure_csv_file_exists(file_path, HEADER)
     user_data = get_user_data(user_id)
-
     user_data = {
         "user_id": user_data.get("user_id", ""),
         "first_name": user_data.get("first_name", ""),
@@ -107,6 +106,7 @@ def register_attendance(user_id, file_path):
     assert (
             user_id == user_data["user_id"]
     ), "Пользователь с данным идентификатором не существует"
+
     # Получение текущей даты и времени
     attendance_time = datetime.now().strftime(DATETIME_FMT)
 
@@ -138,27 +138,3 @@ def preprocess(file_path):
     img = img.resize((105, 105))
     img_array = np.array(img) / 255.0
     return img_array
-
-
-def draw_rectangles_around_faces(frame, detector):
-    # Преобразование кадра в оттенки серого
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    # Обнаружение лиц в кадре
-    faces = detector(gray)
-    try:
-        face = faces[0]
-    except IndexError:
-        return
-
-    # Извлечение ограничивающей рамки лица
-    x, y, w, h = face.left(), face.top(), face.width(), face.height()
-
-    # Проверка, что область лица находится в пределах границ кадра
-    if 0 <= x < frame.shape[1] and 0 <= y < frame.shape[0] and w > 0 and h > 0:
-        # Обрезание области лица
-        face_roi = frame[y: y + h, x: x + w]
-
-        if face_roi.size != 0:
-            # Обрисовка прямоугольника вокруг обнаруженного лица
-            cv2.rectangle(frame, (x - 5, y - 5), (x + w + 5, y + h + 5), (0, 255, 0), 2)
