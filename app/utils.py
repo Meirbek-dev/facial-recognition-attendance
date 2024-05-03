@@ -41,11 +41,15 @@ def convert_to_tkinter_image(frame):
 
 def draw_rectangle_around_face(frame):
     try:
-        faces = extract_faces(frame, detector_backend="yolov8", enforce_detection=False)
+        faces = extract_faces(frame, detector_backend="ssd", enforce_detection=False)
         face = faces[0]
-    except ValueError as e:
+    except (ValueError, IndexError) as e:
         logger.error(e)
-        return ValueError
+        return
+    except cv2.error as e:
+        logger.error("Ошибка OpenCV: %s", e)
+        return
+        
     x, y, w, h = map(
         int,
         (

@@ -28,7 +28,7 @@ ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
 config = load_json("config.json")
 
 MODEL_PATH = config.get("model_path", "")
-EXAMPLE_DATA = config.get("example_data", [])
+USER_ID = config.get("user_id", [])
 
 DETECTION_THRESHOLD = config.get("detection_threshold", 0.0)
 VERIFICATION_THRESHOLD = config.get("verification_threshold", 0.0)
@@ -123,8 +123,8 @@ class FaceIDApp(MDApp):
         verified = verification > VERIFICATION_THRESHOLD
         
         if not verified:
-            register_attendance(*EXAMPLE_DATA, file_path=ATTENDANCE_RECORDS_PATH)
-            Logger.info(f"Подтврежден {EXAMPLE_DATA[0]}, {EXAMPLE_DATA[1]}, {EXAMPLE_DATA[2]}. ")
+            register_attendance(*USER_ID, file_path=ATTENDANCE_RECORDS_PATH)
+            Logger.info(f"Подтврежден {USER_ID[0]}, {USER_ID[1]}, {USER_ID[2]}. ")
             verification_label_text = "Подтверждено"
         else:
             verification_label_text = "Не подтверждено"

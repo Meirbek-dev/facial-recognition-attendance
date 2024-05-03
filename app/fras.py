@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 config = utils.load_json("config.json")
-USED_ID = config.get("example_id", "")
+USED_ID = config.get("user_id", "")
 VIDEO_SOURCE = config.get("video_source", 0)
 
 VERIF_IMGS_DIR_PATH = os.path.join("app_data", "verification_data")
@@ -52,7 +52,7 @@ class FaceRecognitionAttendance(ctk.CTk):
             
             # Обнаружение лиц в кадре
             try:
-                faces = extract_faces(self.frame, detector_backend="ssd")
+                faces = extract_faces(self.frame, detector_backend="yolov8")
                 face = faces[0]
             except (ValueError, IndexError) as e:
                 self.status_label.configure(text="Лицо не обнаружено!")
@@ -61,11 +61,11 @@ class FaceRecognitionAttendance(ctk.CTk):
             
             cv2.imwrite(INPUT_IMG_PATH, self.frame)
             
-            results = verify(INPUT_IMG_PATH, VERIF_IMG_PATH, detector_backend="ssd")
+            results = verify(INPUT_IMG_PATH, VERIF_IMG_PATH, detector_backend="yolov8", model_name="SFace")
 
             logger.info(f"Статус подтверждения: {results['verified']}")
             logger.info(f"Уверенность подтверждения: {face['confidence'] * 100:.2f}%")
-            logger.info(f"Время подтверждения: {results['time']}")
+            logger.info(f"Время подтверждения: {results['time']} с")
             
             if not results["verified"]:
                 self.status_label.configure(text="Не подтверждено")
