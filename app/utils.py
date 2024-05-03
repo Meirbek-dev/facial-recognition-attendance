@@ -49,16 +49,9 @@ def draw_rectangle_around_face(frame):
     except cv2.error as e:
         logger.error("Ошибка OpenCV: %s", e)
         return
-        
-    x, y, w, h = map(
-        int,
-        (
-            face["facial_area"]["x"],
-            face["facial_area"]["y"],
-            face["facial_area"]["w"],
-            face["facial_area"]["h"],
-        ),
-    )
+    
+    x, y, w, h = map(int,
+        (face["facial_area"]["x"], face["facial_area"]["y"], face["facial_area"]["w"], face["facial_area"]["h"],), )
     cv2.rectangle(frame, (x, y), (x + 5 + w + 5, y + 5 + h + 5), (0, 255, 0), 2)
 
 
@@ -89,40 +82,25 @@ def write_rows_to_csv(file_path, header, data):
 
 
 def get_user_data(user_id):
-    return load_json(
-        os.path.join("app_data", "verification_data", user_id, "info.json")
-    )
+    return load_json(os.path.join("app_data", "verification_data", user_id, "info.json"))
 
 
 def register_attendance(user_id, file_path):
     ensure_csv_file_exists(file_path, HEADER)
     user_data = get_user_data(user_id)
-    user_data = {
-        "user_id": user_data.get("user_id", ""),
-        "first_name": user_data.get("first_name", ""),
-        "last_name": user_data.get("last_name", ""),
-        "email": user_data.get("email", ""),
-        "faculty": user_data.get("faculty", ""),
-        "group": user_data.get("group", ""),
-        "address": user_data.get("address", ""),
-    }
+    user_data = {"user_id": user_data.get("user_id", ""), "first_name": user_data.get("first_name", ""),
+        "last_name": user_data.get("last_name", ""), "email": user_data.get("email", ""),
+        "faculty": user_data.get("faculty", ""), "group": user_data.get("group", ""),
+        "address": user_data.get("address", ""), }
     
-    assert (
-            user_id == user_data["user_id"]
-    ), "Пользователь с данным идентификатором не существует"
+    assert (user_id == user_data["user_id"]), "Пользователь с данным идентификатором не существует"
     
     # Получение текущей даты и времени
     attendance_time = datetime.now().strftime(DATETIME_FMT)
     
     # Запись данных в csv-файл
-    new_row = {
-        "UserID": user_id,
-        "FirstName": user_data["first_name"],
-        "LastName": user_data["last_name"],
-        "Faculty": user_data["faculty"],
-        "Group": user_data["group"],
-        "AttendanceTime": attendance_time,
-    }
+    new_row = {"UserID": user_id, "FirstName": user_data["first_name"], "LastName": user_data["last_name"],
+        "Faculty": user_data["faculty"], "Group": user_data["group"], "AttendanceTime": attendance_time, }
     write_rows_to_csv(file_path, HEADER, [new_row])
     logger.info(f"Подтврежден {new_row}. ")
     return user_data
@@ -142,3 +120,11 @@ def preprocess(file_path):
     img = img.resize((105, 105))
     img_array = np.array(img) / 255.0
     return img_array
+
+
+def get_verification_image_path(user_id, status_label):
+    verif_img_path = os.path.join("app_data", "verification_data", str(user_id), "verification_image.jpg")
+    if not os.path.exists(verif_img_path):
+        status_label.configure(text=f"Пользователь с идентификатором {user_id} не существует.")
+        raise FileNotFoundError(f"Пользователь с данным идентификатором не существует: {user_id}")
+    return verif_img_path
