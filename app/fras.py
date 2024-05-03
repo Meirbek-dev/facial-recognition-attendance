@@ -2,12 +2,10 @@ import logging
 import os
 import threading
 
-import tensorflow as tf
 import customtkinter as ctk
 import cv2
 from deepface.DeepFace import verify, extract_faces
 
-from layers import L1Dist
 import ui
 import utils
 
@@ -17,21 +15,13 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 config = utils.load_json("config.json")
-
-USER_ID = config.get("example_id", "")
+EXAMPLE_ID = config.get("example_id", "")
 VIDEO_SOURCE = config.get("video_source", 0)
 
-MODEL_PATH = config.get("model_path", "")
-EXAMPLE_DATA = config.get("example_data", [])
-
-DETECTION_THRESHOLD = config.get("detection_threshold", 0.0)
-VERIFICATION_THRESHOLD = config.get("verification_threshold", 0.0)
-
 VERIF_IMGS_DIR_PATH = os.path.join("app_data", "verification_data")
-VERIF_IMG_PATH = os.path.join(VERIF_IMGS_DIR_PATH, USER_ID, "verification_image.jpg")
+VERIF_IMG_PATH = os.path.join(VERIF_IMGS_DIR_PATH, EXAMPLE_ID, "verification_image.jpg")
 INPUT_IMG_PATH = os.path.join("app_data", "input_image", "input_image.jpg")
 ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
-
 
 
 class FaceRecognitionAttendance(ctk.CTk):
@@ -41,11 +31,9 @@ class FaceRecognitionAttendance(ctk.CTk):
 
         self.web_cam_label = ui.get_web_cam_label(self)
 
-        self.model = tf.keras.models.load_model(MODEL_PATH, custom_objects={"L1Dist": L1Dist})
-
         width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        ui.create_window(self, "Система распознавания лиц", width, height + 180)
+        ui.create_window(self, "Система мониторинга посещаемости",width, height + 180)
         ui.display_verification_button(self, self.verify)
         ui.display_exit_button(self, self.destroy)
         self.status_label = ui.get_status_label(self, text="Начните подтверждение")
@@ -64,7 +52,7 @@ class FaceRecognitionAttendance(ctk.CTk):
 
             # Обнаружение лиц в кадре
             try:
-                faces = extract_faces(self.frame, detector_backend="mtcnn")
+                faces = extract_faces(self.frame, detector_backend="yolov8")
                 face = faces[0]
             except (ValueError, IndexError) as e:
                 self.status_label.configure(text="Лицо не обнаружено!")
@@ -73,7 +61,7 @@ class FaceRecognitionAttendance(ctk.CTk):
 
             cv2.imwrite(INPUT_IMG_PATH, self.frame)
 
-            results = verify(INPUT_IMG_PATH, VERIF_IMG_PATH, detector_backend="yolov8", model_name="SFace", )
+            results = verify(INPUT_IMG_PATH, VERIF_IMG_PATH, detector_backend="yolov8", model_name="DeepID", )
             logger.info(f"Статус подтверждения: {results['verified']}")
             logger.info(f"Уверенность подтверждения: {face['confidence'] * 100:.2f}%")
 
@@ -81,7 +69,7 @@ class FaceRecognitionAttendance(ctk.CTk):
                 self.status_label.configure(text="Не подтверждено")
                 return
 
-            user_data = utils.register_attendance(USER_ID, file_path=ATTENDANCE_RECORDS_PATH)
+            user_data = utils.register_attendance(EXAMPLE_ID, file_path=ATTENDANCE_RECORDS_PATH)
             self.info_label = ui.get_info_label(self, text=f"{user_data['last_name']} {user_data['first_name']}, "
                                                            f"{user_data['faculty']}, {user_data['group']}", )
 
@@ -105,7 +93,7 @@ class FaceRecognitionAttendance(ctk.CTk):
         self.web_cam_label.image = frame
 
         # Обновление кадра каждые 10 мс
-        self.after(30, self.update)
+        self.after(10, self.update)
 
 
 if __name__ == "__main__":

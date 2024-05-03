@@ -1,7 +1,7 @@
 {
   "video_source": 0,
   "model_path": "siamese_model.keras",
-  "detection_threshold": 0.99,
-  "verification_threshold": 0.2,
+  "detection_threshold": 0.90,
+  "verification_threshold": 0.8,
   "example_id": "000507"
 }
