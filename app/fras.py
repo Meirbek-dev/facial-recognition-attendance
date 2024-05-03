@@ -15,11 +15,11 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 config = utils.load_json("config.json")
-EXAMPLE_ID = config.get("example_id", "")
+USED_ID = config.get("example_id", "")
 VIDEO_SOURCE = config.get("video_source", 0)
 
 VERIF_IMGS_DIR_PATH = os.path.join("app_data", "verification_data")
-VERIF_IMG_PATH = os.path.join(VERIF_IMGS_DIR_PATH, EXAMPLE_ID, "verification_image.jpg")
+VERIF_IMG_PATH = os.path.join(VERIF_IMGS_DIR_PATH, USED_ID, "verification_image.jpg")
 INPUT_IMG_PATH = os.path.join("app_data", "input_image", "input_image.jpg")
 ATTENDANCE_RECORDS_PATH = os.path.join("app_data", "attendance_records.csv")
 
@@ -52,7 +52,7 @@ class FaceRecognitionAttendance(ctk.CTk):
             
             # Обнаружение лиц в кадре
             try:
-                faces = extract_faces(self.frame, detector_backend="yolov8")
+                faces = extract_faces(self.frame, detector_backend="ssd")
                 face = faces[0]
             except (ValueError, IndexError) as e:
                 self.status_label.configure(text="Лицо не обнаружено!")
@@ -61,15 +61,17 @@ class FaceRecognitionAttendance(ctk.CTk):
             
             cv2.imwrite(INPUT_IMG_PATH, self.frame)
             
-            results = verify(INPUT_IMG_PATH, VERIF_IMG_PATH, detector_backend="skip")
+            results = verify(INPUT_IMG_PATH, VERIF_IMG_PATH, detector_backend="ssd")
+
             logger.info(f"Статус подтверждения: {results['verified']}")
             logger.info(f"Уверенность подтверждения: {face['confidence'] * 100:.2f}%")
+            logger.info(f"Время подтверждения: {results['time']}")
             
             if not results["verified"]:
                 self.status_label.configure(text="Не подтверждено")
                 return
             
-            user_data = utils.register_attendance(EXAMPLE_ID, file_path=ATTENDANCE_RECORDS_PATH)
+            user_data = utils.register_attendance(USED_ID, file_path=ATTENDANCE_RECORDS_PATH)
             self.info_label = ui.get_info_label(self, text=f"{user_data['last_name']} {user_data['first_name']}, "
                                                            f"{user_data['faculty']}, {user_data['group']}", )
             
