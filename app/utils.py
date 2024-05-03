@@ -55,7 +55,7 @@ def draw_rectangle_around_face(frame):
             face["facial_area"]["h"],
         ),
     )
-    cv2.rectangle(frame, (x, y), (x + 10 + w + 10, y + 10 + h + 10), (0, 255, 0), 2)
+    cv2.rectangle(frame, (x, y), (x + 5 + w + 5, y + 5 + h + 5), (0, 255, 0), 2)
 
 
 def ensure_csv_file_exists(file_path, header):
@@ -102,14 +102,14 @@ def register_attendance(user_id, file_path):
         "group": user_data.get("group", ""),
         "address": user_data.get("address", ""),
     }
-
+    
     assert (
             user_id == user_data["user_id"]
     ), "Пользователь с данным идентификатором не существует"
-
+    
     # Получение текущей даты и времени
     attendance_time = datetime.now().strftime(DATETIME_FMT)
-
+    
     # Запись данных в csv-файл
     new_row = {
         "UserID": user_id,

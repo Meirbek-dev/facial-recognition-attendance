@@ -1,5 +1,5 @@
 numpy==1.26.4
-tensorflow==2.16.1
+tensorflow==2.15.1
 pillow==10.3.0
 kivy==2.3.0
 kivymd==1.2.0
